@@ -21,15 +21,30 @@ class MyCodebuildStack(Stack):
         
         
         app_build_role = iam.Role(self,"AppBuildRole",assumed_by=iam.ServicePrincipal("codebuild.amazonaws.com"))
-        app_build_role.add_managed_policy(iam.ManagedPolicy.from_aws_managed_policy_name("CodeBuildAccess"))
+        # app_build_role.add_managed_policy(iam.ManagedPolicy.from_aws_managed_policy_name("CodeBuildAccess"))
         
-        build_log_policy = iam.Policy(self,"BuildLogPolicy")
+        policy_document = iam.PolicyDocument(statements=[iam.PolicyStatement(
+            resources=["*"],
+            actions=["logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"]
+            )])
+        
+        build_log_policy = iam.Policy(self,"BuildLogPolicy",
+            document=policy_document)
+        
+        
+        bucket_policy_statement = iam.PolicyStatement(
+            resources=["*"],
+            actions=["s3:PutObject"],
+            effect=iam.Effect.DENY)
+        
+        bucket_policy_statement.add_any_principal()
             
         artifact_bucket = s3.Bucket(self,"ArtifactBucket")
+        artifact_bucket.add_to_resource_policy(bucket_policy_statement)
         
-        # artifact_bucket_policy = s3.BucketPolicy(self, "ArtifactBucketPolicy",
-        #     bucket=artifact_bucket)
-        
+
         project = CodeBuild.Project(self,"AppBuildProject",
             artifacts=CodeBuild.Artifacts.s3(
                 bucket=artifact_bucket,
