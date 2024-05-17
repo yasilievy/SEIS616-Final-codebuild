@@ -22,19 +22,19 @@ class MyCodebuildStack(Stack):
             code=CodeCommit.Code.from_zip_file("java-project.zip", "main"))
         
         # creating a role with policy for the CodeBuild project
-        app_build_role = iam.Role(self,"AppBuildRole",assumed_by=iam.ServicePrincipal("codebuild.amazonaws.com"))
-        # app_build_role.add_managed_policy(iam.ManagedPolicy.from_aws_managed_policy_name("CodeBuildAccess"))
-        
+        app_build_role = iam.Role(self,"AppBuildRole",
+            assumed_by=iam.ServicePrincipal("codebuild.amazonaws.com"))
+
         
         # creating a policy document for the BuildLogPolicy
-        # policy_document = iam.PolicyDocument(statements=[iam.PolicyStatement(
-        #     resources=["*"],
-        #     actions=["logs:CreateLogGroup",
-        #             "logs:CreateLogStream",
-        #             "logs:PutLogEvents"]
-        #     )])
-        # build_log_policy = iam.Policy(self,"BuildLogPolicy",
-        #     document=policy_document)
+        policy_document = iam.PolicyDocument(statements=[iam.PolicyStatement(
+            resources=["*"],
+            actions=["logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"]
+            )])
+        build_log_policy = iam.Policy(self,"BuildLogPolicy",
+            document=policy_document)
         
         
         # creating an S3 bucket for the CodeBuild project
@@ -56,8 +56,7 @@ class MyCodebuildStack(Stack):
                 package_zip=True),
             source=CodeBuild.Source.code_commit(
                 repository=repo,
-                branch_or_ref="main"
-            ),
+                branch_or_ref="main"),
             environment=CodeBuild.BuildEnvironment(
                 privileged=True
             ),
